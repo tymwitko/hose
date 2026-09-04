@@ -15,7 +15,6 @@ func main() {
 		fmt.Print("Oopsie")
 		os.Exit(1)
 	}
-	// return output
 }
 
 type state int
@@ -35,7 +34,20 @@ type project struct {
 
 func initialModel() model {
 	return model{
-		projects: []project{},
+		projects: []project{
+			project{
+				"Recents",
+				"/home/tymon/Kodzenie/Kotlin/Recents",
+				"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
+				"recents",
+			},
+			project{
+				"ToReplace",
+				"/home/tymon/Kodzenie/Kotlin/ToReplace",
+				"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
+				"recents",
+			},
+		},
 	}
 }
 
@@ -64,8 +76,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			s := pro.CheckGitCleanness()
 			storePass, keyPass := getPasswords()
 			s += pro.Build(storePass, keyPass)
-			// selected := m.projects[m.cursor]
-			// _, err := exec.Command("/bin/sh", "gradle_script.sh").Output()
 			if s != "" {
 				fmt.Printf("error %s", s)
 			} else {
@@ -77,7 +87,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p project) CheckGitCleanness() string {
-	result, err := exec.Command("git", "-C", p.rootPath, "status", "--porcelain").Output() //exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && git status --porcelain | wc -l", p.rootPath)).Output()
+	result, err := exec.Command("git", "-C", p.rootPath, "status", "--porcelain").Output()
 	if err != nil || len(result) != 0 {
 		return fmt.Sprintf("Git not clean, commit or stash your changes! Error is %s, %s", err, string(result))
 	}
@@ -89,7 +99,6 @@ func getPasswords() (string, string) {
 }
 
 func (p project) Build(storePass string, keyPass string) string {
-	//_, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s", p.rootPath)).Output()
 	_, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && ./gradlew clean assembleRelease -Pandroid.injected.signing.store.file=%s -Pandroid.injected.signing.store.password=%s -Pandroid.injected.signing.key.alias=%s -Pandroid.injected.signing.key.password=%s", p.rootPath, p.keyStorePath, storePass, p.alias, keyPass)).Output()
 	if err != nil {
 		return fmt.Sprintf("Build failed with message %s", err)
