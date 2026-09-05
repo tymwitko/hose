@@ -34,20 +34,7 @@ type project struct {
 
 func initialModel() model {
 	return model{
-		projects: []project{
-			project{
-				"Recents",
-				"/home/tymon/Kodzenie/Kotlin/Recents",
-				"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
-				"recents",
-			},
-			project{
-				"ToReplace",
-				"/home/tymon/Kodzenie/Kotlin/ToReplace",
-				"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
-				"recents",
-			},
-		},
+		projects: []project{},
 	}
 }
 
