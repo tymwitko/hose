@@ -5,7 +5,9 @@ import (
 	"os"
 	"os/exec"
 
+	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 func main() {
@@ -19,10 +21,26 @@ func main() {
 
 type state int
 
+const (
+	projectsState state = iota
+	passwordsState
+)
+
 type model struct {
-	currentState state
-	projects     []project
-	cursor       int
+	currentState  state
+	projectModel  projectModel
+	passwordModel passwordModel
+}
+
+type projectModel struct {
+	projects []project
+	cursor   int
+}
+
+type passwordModel struct {
+	storePassword textinput.Model
+	keyPassword   textinput.Model
+	cursor        int
 }
 
 type project struct {
@@ -34,7 +52,11 @@ type project struct {
 
 func initialModel() model {
 	return model{
-		projects: []project{},
+		projectsState,
+		projectModel{
+			projects: []project{},
+		},
+		passwordModel{},
 	}
 }
 
@@ -43,11 +65,29 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch m.currentState {
+	case projectsState:
+		pr, cmd, shouldSwitch := m.projectModel.Update(msg)
+		m.projectModel = pr
+		if shouldSwitch {
+			m.currentState = passwordsState
+		}
+		return m, cmd
+	case passwordsState:
+		pass, cmd := m.passwordModel.Update(msg)
+		m.passwordModel = pass
+		return m, cmd
+	}
+	return m, nil
+}
+
+func (m projectModel) Update(msg tea.Msg) (projectModel, tea.Cmd, bool) {
+	var shouldChangeState = false
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
-			return m, tea.Quit
+			return m, tea.Quit, false
 
 		case "up", "k":
 			if m.cursor > 0 {
@@ -58,9 +98,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.cursor < len(m.projects)-1 {
 				m.cursor++
 			}
+
 		case "enter", "space":
 			pro := m.projects[m.cursor]
 			s := pro.CheckGitCleanness()
+			shouldChangeState = true
 			storePass, keyPass := getPasswords()
 			s += pro.Build(storePass, keyPass)
 			if s != "" {
@@ -70,7 +112,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
-	return m, nil
+	return m, nil, shouldChangeState
+}
+
+func (m passwordModel) Update(msg tea.Msg) (passwordModel, tea.Cmd) {
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
+
+		case "up":
+			if m.cursor > 0 {
+				m.cursor--
+			}
+
+		case "down":
+			if m.cursor < 2 {
+				m.cursor++
+			}
+
+		}
+	}
+
+	m.storePassword, cmd = m.storePassword.Update(msg)
+	return m, cmd
 }
 
 func (p project) CheckGitCleanness() string {
@@ -94,16 +162,37 @@ func (p project) Build(storePass string, keyPass string) string {
 }
 
 func (m model) View() tea.View {
-	s := "Select project to build\n\n"
+	switch m.currentState {
+	case projectsState:
+		s := "Select project to build\n\n"
 
-	for i, p := range m.projects {
-		cursor := " "
-		if m.cursor == i {
-			cursor = ">"
+		for i, p := range m.projectModel.projects {
+			cursor := " "
+			if m.projectModel.cursor == i {
+				cursor = ">"
+			}
+			s += fmt.Sprintf("%s %s\n", cursor, p)
 		}
-		s += fmt.Sprintf("%s %s\n", cursor, p)
-	}
-	s += "\nPress q to quit.\n"
+		s += "\nPress q to quit.\n"
+		return tea.NewView(s)
 
-	return tea.NewView(s)
+	case passwordsState:
+		str := "Enter store password\n"
+		var c *tea.Cursor
+		if !m.passwordModel.storePassword.VirtualCursor() {
+			c = m.passwordModel.storePassword.Cursor()
+			//c.Y += lipgloss.Height(m.headerView())
+		}
+
+		// str := lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.headerView(), m.textInput.View(), m.passwordModel.footerView())
+		str += lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.storePassword.View())
+		//if m.quitting {
+		//str += "\n"
+		//}
+
+		v := tea.NewView(str)
+		v.Cursor = c
+		return v
+	}
+	return tea.NewView("Error")
 }
