@@ -38,6 +38,7 @@ type projectModel struct {
 }
 
 type passwordModel struct {
+	project       project
 	storePassword textinput.Model
 	keyPassword   textinput.Model
 	cursor        int
@@ -54,9 +55,25 @@ func initialModel() model {
 	return model{
 		projectsState,
 		projectModel{
-			projects: []project{},
+			projects: []project{
+				project{
+					"Recents",
+					"/home/tymon/Kodzenie/Kotlin/Recents",
+					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
+					"recents",
+				},
+				project{
+					"ToReplace",
+					"/home/tymon/Kodzenie/Kotlin/ToReplace",
+					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
+					"recents",
+				},
+			},
 		},
-		passwordModel{},
+		passwordModel{
+			storePassword: textinput.New(),
+			keyPassword:   textinput.New(),
+		},
 	}
 }
 
@@ -67,8 +84,8 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.currentState {
 	case projectsState:
-		pr, cmd, shouldSwitch := m.projectModel.Update(msg)
-		m.projectModel = pr
+		pr, cmd, shouldSwitch := m.UpdateProjects(msg)
+		m = pr
 		if shouldSwitch {
 			m.currentState = passwordsState
 		}
@@ -81,7 +98,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m projectModel) Update(msg tea.Msg) (projectModel, tea.Cmd, bool) {
+func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd, bool) {
 	var shouldChangeState = false
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
@@ -90,25 +107,26 @@ func (m projectModel) Update(msg tea.Msg) (projectModel, tea.Cmd, bool) {
 			return m, tea.Quit, false
 
 		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
+			if m.projectModel.cursor > 0 {
+				m.projectModel.cursor--
 			}
 
 		case "down", "j":
-			if m.cursor < len(m.projects)-1 {
-				m.cursor++
+			if m.projectModel.cursor < len(m.projectModel.projects)-1 {
+				m.projectModel.cursor++
 			}
 
 		case "enter", "space":
-			pro := m.projects[m.cursor]
+			pro := m.projectModel.projects[m.projectModel.cursor]
 			s := pro.CheckGitCleanness()
 			shouldChangeState = true
-			storePass, keyPass := getPasswords()
-			s += pro.Build(storePass, keyPass)
 			if s != "" {
 				fmt.Printf("error %s", s)
 			} else {
-				fmt.Print("Build successful!")
+				m.passwordModel.project = pro
+				m.passwordModel.storePassword.Focus()
+				m.passwordModel.storePassword.SetVirtualCursor(false)
+				fmt.Print("Git check successful!")
 			}
 		}
 	}
@@ -121,7 +139,7 @@ func (m passwordModel) Update(msg tea.Msg) (passwordModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "ctrl+c", "esc":
 			return m, tea.Quit
 
 		case "up":
@@ -134,6 +152,10 @@ func (m passwordModel) Update(msg tea.Msg) (passwordModel, tea.Cmd) {
 				m.cursor++
 			}
 
+		case "enter":
+			fmt.Printf("Starting build…")
+			res := m.project.Build(m.storePassword.Value(), m.storePassword.Value()) // todo: keyPassword
+			fmt.Printf(res)
 		}
 	}
 
@@ -149,14 +171,10 @@ func (p project) CheckGitCleanness() string {
 	return ""
 }
 
-func getPasswords() (string, string) {
-	return "password1", "password2" // todo: get from text inputs
-}
-
 func (p project) Build(storePass string, keyPass string) string {
-	_, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && ./gradlew clean assembleRelease -Pandroid.injected.signing.store.file=%s -Pandroid.injected.signing.store.password=%s -Pandroid.injected.signing.key.alias=%s -Pandroid.injected.signing.key.password=%s", p.rootPath, p.keyStorePath, storePass, p.alias, keyPass)).Output()
+	res, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && ./gradlew clean assembleRelease -Pandroid.injected.signing.store.file=%s -Pandroid.injected.signing.store.password=%s -Pandroid.injected.signing.key.alias=%s -Pandroid.injected.signing.key.password=%s", p.rootPath, p.keyStorePath, storePass, p.alias, keyPass)).Output()
 	if err != nil {
-		return fmt.Sprintf("Build failed with message %s", err)
+		return fmt.Sprintf("Build failed with message %s %s, passwords were %s, %s", res, err, storePass, keyPass)
 	}
 	return ""
 }
@@ -177,18 +195,13 @@ func (m model) View() tea.View {
 		return tea.NewView(s)
 
 	case passwordsState:
-		str := "Enter store password\n"
 		var c *tea.Cursor
 		if !m.passwordModel.storePassword.VirtualCursor() {
 			c = m.passwordModel.storePassword.Cursor()
-			//c.Y += lipgloss.Height(m.headerView())
+			c.Y += lipgloss.Height(m.passwordModel.headerView())
 		}
 
-		// str := lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.headerView(), m.textInput.View(), m.passwordModel.footerView())
-		str += lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.storePassword.View())
-		//if m.quitting {
-		//str += "\n"
-		//}
+		str := lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.headerView(), m.passwordModel.storePassword.View(), m.passwordModel.footerView())
 
 		v := tea.NewView(str)
 		v.Cursor = c
@@ -196,3 +209,6 @@ func (m model) View() tea.View {
 	}
 	return tea.NewView("Error")
 }
+
+func (m passwordModel) headerView() string { return "Enter your store password\n" }
+func (m passwordModel) footerView() string { return "\n(esc to quit)" }
