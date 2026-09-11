@@ -55,20 +55,7 @@ func initialModel() model {
 	return model{
 		projectsState,
 		projectModel{
-			projects: []project{
-				project{
-					"Recents",
-					"/home/tymon/Kodzenie/Kotlin/Recents",
-					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
-					"recents",
-				},
-				project{
-					"ToReplace",
-					"/home/tymon/Kodzenie/Kotlin/ToReplace",
-					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
-					"recents",
-				},
-			},
+			projects: []project{},
 		},
 		passwordModel{
 			storePassword: textinput.New(),
@@ -125,6 +112,7 @@ func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd, bool) {
 			} else {
 				m.passwordModel.project = pro
 				m.passwordModel.storePassword.Focus()
+				m.passwordModel.keyPassword.SetVirtualCursor(false)
 				m.passwordModel.storePassword.SetVirtualCursor(false)
 				fmt.Print("Git check successful!")
 			}
@@ -144,22 +132,30 @@ func (m passwordModel) Update(msg tea.Msg) (passwordModel, tea.Cmd) {
 
 		case "up":
 			if m.cursor > 0 {
+				m.storePassword.Focus()
 				m.cursor--
 			}
 
 		case "down":
 			if m.cursor < 2 {
+				m.keyPassword.Focus()
 				m.cursor++
 			}
 
 		case "enter":
 			fmt.Printf("Starting build…")
-			res := m.project.Build(m.storePassword.Value(), m.storePassword.Value()) // todo: keyPassword
-			fmt.Printf(res)
+			res := m.project.Build(m.storePassword.Value(), m.keyPassword.Value())
+			fmt.Print(res)
 		}
 	}
 
-	m.storePassword, cmd = m.storePassword.Update(msg)
+	switch {
+	case m.keyPassword.Focused():
+		m.keyPassword, cmd = m.keyPassword.Update(msg)
+	case m.storePassword.Focused():
+		m.storePassword, cmd = m.storePassword.Update(msg)
+	}
+
 	return m, cmd
 }
 
@@ -201,7 +197,12 @@ func (m model) View() tea.View {
 			c.Y += lipgloss.Height(m.passwordModel.headerView())
 		}
 
-		str := lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.headerView(), m.passwordModel.storePassword.View(), m.passwordModel.footerView())
+		if !m.passwordModel.keyPassword.VirtualCursor() && m.passwordModel.keyPassword.Focused() {
+			c = m.passwordModel.keyPassword.Cursor()
+			c.Y += lipgloss.Height(m.passwordModel.headerView()) + 3
+		}
+
+		str := lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.headerView(), m.passwordModel.storePassword.View(), "Enter your key password\n", m.passwordModel.keyPassword.View(), m.passwordModel.footerView())
 
 		v := tea.NewView(str)
 		v.Cursor = c
