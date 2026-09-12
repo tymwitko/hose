@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -56,7 +57,20 @@ func initialModel() model {
 	return model{
 		projectsState,
 		projectModel{
-			projects: []project{},
+			projects: []project{
+				project{
+					"Recents",
+					"/home/tymon/Kodzenie/Kotlin/Recents",
+					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
+					"recents",
+				},
+				project{
+					"ToReplace",
+					"/home/tymon/Kodzenie/Kotlin/ToReplace",
+					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
+					"recents",
+				},
+			},
 		},
 		passwordModel{
 			storePassword: textinput.New(),
@@ -185,17 +199,18 @@ func (p project) Build(storePass string, keyPass string) string {
 func (m model) View() tea.View {
 	switch m.currentState {
 	case projectsState:
-		s := "Select project to build\n\n"
+		var s bytes.Buffer
+		s.WriteString("Select project to build\n\n")
 
 		for i, p := range m.projectModel.projects {
 			cursor := " "
 			if m.projectModel.cursor == i {
 				cursor = ">"
 			}
-			s += fmt.Sprintf("%s %s\n", cursor, p)
+			s.WriteString(fmt.Sprintf("%s %s\n", cursor, p))
 		}
-		s += "\nPress q to quit.\n"
-		return tea.NewView(s)
+		s.WriteString("\nPress q to quit.\n")
+		return tea.NewView(s.String())
 
 	case passwordsState:
 		var c *tea.Cursor
