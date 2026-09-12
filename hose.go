@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
@@ -55,7 +56,20 @@ func initialModel() model {
 	return model{
 		projectsState,
 		projectModel{
-			projects: []project{},
+			projects: []project{
+				project{
+					"Recents",
+					"/home/tymon/Kodzenie/Kotlin/Recents",
+					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
+					"recents",
+				},
+				project{
+					"ToReplace",
+					"/home/tymon/Kodzenie/Kotlin/ToReplace",
+					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
+					"recents",
+				},
+			},
 		},
 		passwordModel{
 			storePassword: textinput.New(),
@@ -132,12 +146,18 @@ func (m passwordModel) Update(msg tea.Msg) (passwordModel, tea.Cmd) {
 
 		case "up":
 			if m.cursor > 0 {
+				if m.keyPassword.Focused() {
+					m.keyPassword.Blur()
+				}
 				m.storePassword.Focus()
 				m.cursor--
 			}
 
 		case "down":
 			if m.cursor < 2 {
+				if m.storePassword.Focused() {
+					m.storePassword.Blur()
+				}
 				m.keyPassword.Focus()
 				m.cursor++
 			}
@@ -192,17 +212,17 @@ func (m model) View() tea.View {
 
 	case passwordsState:
 		var c *tea.Cursor
-		if !m.passwordModel.storePassword.VirtualCursor() {
+		if !m.passwordModel.storePassword.VirtualCursor() && m.passwordModel.storePassword.Focused() {
 			c = m.passwordModel.storePassword.Cursor()
 			c.Y += lipgloss.Height(m.passwordModel.headerView())
 		}
 
 		if !m.passwordModel.keyPassword.VirtualCursor() && m.passwordModel.keyPassword.Focused() {
 			c = m.passwordModel.keyPassword.Cursor()
-			c.Y += lipgloss.Height(m.passwordModel.headerView()) + 3
+			c.Y += lipgloss.Height(m.passwordModel.headerView()) + 4
 		}
 
-		str := lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.headerView(), m.passwordModel.storePassword.View(), "Enter your key password\n", m.passwordModel.keyPassword.View(), m.passwordModel.footerView())
+		str := lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.headerView(), maskPassword(m.passwordModel.storePassword), "\nEnter your key password\n", maskPassword(m.passwordModel.keyPassword), m.passwordModel.footerView())
 
 		v := tea.NewView(str)
 		v.Cursor = c
@@ -212,4 +232,9 @@ func (m model) View() tea.View {
 }
 
 func (m passwordModel) headerView() string { return "Enter your store password\n" }
+
 func (m passwordModel) footerView() string { return "\n(esc to quit)" }
+
+func maskPassword(t textinput.Model) string {
+	return fmt.Sprintf("> %s", strings.Repeat("*", len(t.Value())))
+}
