@@ -56,20 +56,7 @@ func initialModel() model {
 	return model{
 		projectsState,
 		projectModel{
-			projects: []project{
-				project{
-					"Recents",
-					"/home/tymon/Kodzenie/Kotlin/Recents",
-					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
-					"recents",
-				},
-				project{
-					"ToReplace",
-					"/home/tymon/Kodzenie/Kotlin/ToReplace",
-					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
-					"recents",
-				},
-			},
+			projects: []project{},
 		},
 		passwordModel{
 			storePassword: textinput.New(),
