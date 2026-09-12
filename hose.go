@@ -207,7 +207,7 @@ func (m model) View() tea.View {
 			if m.projectModel.cursor == i {
 				cursor = ">"
 			}
-			s.WriteString(fmt.Sprintf("%s %s\n", cursor, p))
+			fmt.Fprintf(&s, "%s %s\n", cursor, p)
 		}
 		s.WriteString("\nPress q to quit.\n")
 		return tea.NewView(s.String())
