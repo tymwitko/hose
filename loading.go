@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -31,4 +33,9 @@ func (m model) UpdateBuilding(msg tea.Msg) (model, tea.Cmd) {
 		m.buildingModel.spinner, cmd = m.buildingModel.spinner.Update(msg)
 		return m, cmd
 	}
+}
+
+func (m model) ViewBuilding() tea.View {
+	str := fmt.Sprintf("\n\n\n   %s Building…\n\n\n", m.buildingModel.spinner.View())
+	return tea.NewView(str)
 }

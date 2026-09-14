@@ -6,6 +6,7 @@ import (
 
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 type passwordModel struct {
@@ -60,6 +61,26 @@ func (m model) UpdatePassword(msg tea.Msg) (model, tea.Cmd) {
 
 	}
 	return m, cmd
+}
+
+func (m model) ViewPasswordPrompts() tea.View {
+	var c *tea.Cursor
+	if !m.passwordModel.storePassword.VirtualCursor() && m.passwordModel.storePassword.Focused() {
+		c = m.passwordModel.storePassword.Cursor()
+		c.Y += lipgloss.Height(m.passwordModel.headerView())
+	}
+
+	if !m.passwordModel.keyPassword.VirtualCursor() && m.passwordModel.keyPassword.Focused() {
+		c = m.passwordModel.keyPassword.Cursor()
+		c.Y += lipgloss.Height(m.passwordModel.headerView()) + 4
+	}
+
+	str := lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.headerView(), maskPassword(m.passwordModel.storePassword), "\nEnter your key password\n", maskPassword(m.passwordModel.keyPassword), m.passwordModel.footerView())
+
+	v := tea.NewView(str)
+	v.Cursor = c
+	return v
+
 }
 
 func (m passwordModel) headerView() string { return "Enter your store password\n" }

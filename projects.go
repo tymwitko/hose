@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 
@@ -52,6 +53,22 @@ func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd) {
 		}
 	}
 	return m, nil
+}
+
+func (m model) ViewProjects() tea.View {
+
+	var s bytes.Buffer
+	s.WriteString("Select project to build\n\n")
+
+	for i, p := range m.projectModel.projects {
+		cursor := " "
+		if m.projectModel.cursor == i {
+			cursor = ">"
+		}
+		fmt.Fprintf(&s, "%s %s\n", cursor, p)
+	}
+	s.WriteString("\nPress q to quit.\n")
+	return tea.NewView(s.String())
 }
 
 func (p project) CheckGitCleanness() string {
