@@ -24,24 +24,40 @@ type state int
 const (
 	projectsState state = iota
 	passwordsState
+	buildingState
 )
 
 type model struct {
 	currentState  state
 	projectModel  projectModel
 	passwordModel passwordModel
+	buildingModel buildingModel
 }
 
 func initialModel() model {
 	return model{
 		projectsState,
 		projectModel{
-			projects: []project{},
+			projects: []project{
+				project{
+					"Recents",
+					"/home/tymon/Kodzenie/Kotlin/Recents",
+					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
+					"recents",
+				},
+				project{
+					"ToReplace",
+					"/home/tymon/Kodzenie/Kotlin/ToReplace",
+					"/home/tymon/Kodzenie/Kotlin/Recents/recents_keystore.jks",
+					"recents",
+				},
+			},
 		},
 		passwordModel{
 			storePassword: textinput.New(),
 			keyPassword:   textinput.New(),
 		},
+		initializeSpinner(),
 	}
 }
 
@@ -50,18 +66,16 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
 	switch m.currentState {
 	case projectsState:
-		pr, cmd, shouldSwitch := m.UpdateProjects(msg)
-		m = pr
-		if shouldSwitch {
-			m.currentState = passwordsState
-		}
+		m, cmd = m.UpdateProjects(msg)
 		return m, cmd
 	case passwordsState:
-		pass, cmd := m.passwordModel.Update(msg)
-		m.passwordModel = pass
+		m, cmd = m.UpdatePassword(msg)
 		return m, cmd
+	case buildingState:
+		m, cmd = m.UpdateBuilding(msg)
 	}
 	return m, nil
 }
@@ -99,6 +113,10 @@ func (m model) View() tea.View {
 		v := tea.NewView(str)
 		v.Cursor = c
 		return v
+
+	case buildingState:
+		str := fmt.Sprintf("\n\n\n   %s Building…\n\n\n", m.buildingModel.spinner.View())
+		return tea.NewView(str)
 	}
 	return tea.NewView("Error")
 }

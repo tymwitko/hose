@@ -15,7 +15,7 @@ type passwordModel struct {
 	cursor        int
 }
 
-func (m passwordModel) Update(msg tea.Msg) (passwordModel, tea.Cmd) {
+func (m model) UpdatePassword(msg tea.Msg) (model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -25,37 +25,40 @@ func (m passwordModel) Update(msg tea.Msg) (passwordModel, tea.Cmd) {
 			return m, tea.Quit
 
 		case "up":
-			if m.cursor > 0 {
-				if m.keyPassword.Focused() {
-					m.keyPassword.Blur()
+			if m.passwordModel.cursor > 0 {
+				if m.passwordModel.keyPassword.Focused() {
+					m.passwordModel.keyPassword.Blur()
 				}
-				m.storePassword.Focus()
-				m.cursor--
+				m.passwordModel.storePassword.Focus()
+				m.passwordModel.cursor--
 			}
 
 		case "down":
-			if m.cursor < 2 {
-				if m.storePassword.Focused() {
-					m.storePassword.Blur()
+			if m.passwordModel.cursor < 2 {
+				if m.passwordModel.storePassword.Focused() {
+					m.passwordModel.storePassword.Blur()
 				}
-				m.keyPassword.Focus()
-				m.cursor++
+				m.passwordModel.keyPassword.Focus()
+				m.passwordModel.cursor++
 			}
 
 		case "enter":
 			fmt.Printf("Starting build…")
-			res := m.project.Build(m.storePassword.Value(), m.keyPassword.Value())
-			fmt.Print(res)
+			m.currentState = buildingState
+			return m, tea.Batch(
+				m.buildingModel.spinner.Tick,
+				m.passwordModel.project.Build(m.passwordModel.storePassword.Value(), m.passwordModel.keyPassword.Value()),
+			)
 		}
-	}
 
-	switch {
-	case m.keyPassword.Focused():
-		m.keyPassword, cmd = m.keyPassword.Update(msg)
-	case m.storePassword.Focused():
-		m.storePassword, cmd = m.storePassword.Update(msg)
-	}
+		switch {
+		case m.passwordModel.keyPassword.Focused():
+			m.passwordModel.keyPassword, cmd = m.passwordModel.keyPassword.Update(msg)
+		case m.passwordModel.storePassword.Focused():
+			m.passwordModel.storePassword, cmd = m.passwordModel.storePassword.Update(msg)
+		}
 
+	}
 	return m, cmd
 }
 

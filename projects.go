@@ -19,13 +19,12 @@ type project struct {
 	alias        string
 }
 
-func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd, bool) {
-	var shouldChangeState = false
+func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
-			return m, tea.Quit, false
+			return m, tea.Quit
 
 		case "up", "k":
 			if m.projectModel.cursor > 0 {
@@ -40,7 +39,7 @@ func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd, bool) {
 		case "enter", "space":
 			pro := m.projectModel.projects[m.projectModel.cursor]
 			s := pro.CheckGitCleanness()
-			shouldChangeState = true
+			m.currentState = passwordsState
 			if s != "" {
 				fmt.Printf("error %s", s)
 			} else {
@@ -52,7 +51,7 @@ func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd, bool) {
 			}
 		}
 	}
-	return m, nil, shouldChangeState
+	return m, nil
 }
 
 func (p project) CheckGitCleanness() string {
@@ -63,10 +62,12 @@ func (p project) CheckGitCleanness() string {
 	return ""
 }
 
-func (p project) Build(storePass string, keyPass string) string {
-	res, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && ./gradlew clean assembleRelease -Pandroid.injected.signing.store.file=%s -Pandroid.injected.signing.store.password=%s -Pandroid.injected.signing.key.alias=%s -Pandroid.injected.signing.key.password=%s", p.rootPath, p.keyStorePath, storePass, p.alias, keyPass)).Output()
-	if err != nil {
-		return fmt.Sprintf("Build failed with message %s %s, passwords were %s, %s", res, err, storePass, keyPass)
+func (p project) Build(storePass string, keyPass string) tea.Cmd {
+	return func() tea.Msg {
+		res, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && ./gradlew clean assembleRelease -Pandroid.injected.signing.store.file=%s -Pandroid.injected.signing.store.password=%s -Pandroid.injected.signing.key.alias=%s -Pandroid.injected.signing.key.password=%s", p.rootPath, p.keyStorePath, storePass, p.alias, keyPass)).Output()
+		if err != nil {
+			return fmt.Sprintf("Build failed with message %s %s, passwords were %s, %s", res, err, storePass, keyPass)
+		}
+		return "Build finished successfully!"
 	}
-	return ""
 }
