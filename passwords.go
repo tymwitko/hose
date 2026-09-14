@@ -44,7 +44,6 @@ func (m model) UpdatePassword(msg tea.Msg) (model, tea.Cmd) {
 			}
 
 		case "enter":
-			fmt.Printf("Starting build…")
 			m.currentState = buildingState
 			return m, tea.Batch(
 				m.buildingModel.spinner.Tick,

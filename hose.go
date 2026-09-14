@@ -61,6 +61,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	case buildingState:
 		m, cmd = m.UpdateBuilding(msg)
+		return m, cmd
 	}
 	return m, nil
 }
