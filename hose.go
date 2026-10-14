@@ -23,6 +23,7 @@ const (
 	projectsState state = iota
 	passwordsState
 	buildingState
+	addingState
 )
 
 type model struct {
@@ -30,6 +31,7 @@ type model struct {
 	projectModel  projectModel
 	passwordModel passwordModel
 	buildingModel buildingModel
+	addingModel   addingModel
 }
 
 func initialModel() model {
@@ -43,6 +45,12 @@ func initialModel() model {
 			keyPassword:   textinput.New(),
 		},
 		initializeSpinner(),
+		addingModel{
+			projectName:  textinput.New(),
+			rootPath:     textinput.New(),
+			keyStorePath: textinput.New(),
+			alias:        textinput.New(),
+		},
 	}
 }
 
@@ -62,6 +70,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case buildingState:
 		m, cmd = m.UpdateBuilding(msg)
 		return m, cmd
+	case addingState:
+		m, cmd = m.UpdateProject(msg)
+		return m, cmd
 	}
 	return m, nil
 }
@@ -74,6 +85,8 @@ func (m model) View() tea.View {
 		return m.ViewPasswordPrompts()
 	case buildingState:
 		return m.ViewBuilding()
+	case addingState:
+		return m.ViewAddingProjectPrompt()
 	}
 	return tea.NewView("Error")
 }
