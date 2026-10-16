@@ -34,9 +34,26 @@ func setupDb() *sqlite.DB {
 	return db
 }
 
-func getAllEntries() *sql.Rows {
-	rows, _ := db.Query("SELECT * FROM projects")
-	return rows
+func getAllEntries() ([]project, error) {
+	rows, err := db.Query(`SELECT * FROM projects`)
+	if err != nil {
+		return nil, fmt.Errorf("query projects: %w", err)
+	}
+	defer rows.Close()
+
+	var projects []project
+	for rows.Next() {
+		var p project
+		if err := rows.Scan(&p.name, &p.rootPath, &p.keyStorePath, &p.alias); err != nil {
+			return nil, fmt.Errorf("scan project: %w", err)
+		}
+		projects = append(projects, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate projects: %w", err)
+	}
+	return projects, nil
 }
 
 func insertProject(p project) sql.Result {

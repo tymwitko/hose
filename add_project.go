@@ -37,6 +37,7 @@ func (m model) UpdateProject(msg tea.Msg) (model, tea.Cmd) {
 		case "enter":
 			insertProject(m.addingModel.toProject())
 			m.currentState = projectsState
+			return m, loadProjects()
 		}
 
 		switch {
@@ -114,5 +115,12 @@ func (m addingModel) toProject() project {
 		rootPath:     m.rootPath.Value(),
 		keyStorePath: m.keyStorePath.Value(),
 		alias:        m.alias.View(),
+	}
+}
+
+func loadProjects() tea.Cmd {
+	return func() tea.Msg {
+		projects, _ := getAllEntries()
+		return projects
 	}
 }

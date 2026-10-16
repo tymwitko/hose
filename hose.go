@@ -35,10 +35,11 @@ type model struct {
 }
 
 func initialModel() model {
+	projects, _ := getAllEntries()
 	return model{
 		projectsState,
 		projectModel{
-			projects: []project{},
+			projects: projects,
 		},
 		passwordModel{
 			storePassword: textinput.New(),
