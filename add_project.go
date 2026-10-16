@@ -20,8 +20,11 @@ func (m model) UpdateProject(msg tea.Msg) (model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
-		case "ctrl+c", "esc":
+		case "ctrl+c":
 			return m, tea.Quit
+
+		case "esc":
+			m.currentState = projectsState
 
 		case "up":
 			m.addingModel.focusOnProperField()
@@ -32,10 +35,8 @@ func (m model) UpdateProject(msg tea.Msg) (model, tea.Cmd) {
 			m.addingModel.cursor++
 
 		case "enter":
-			return m, tea.Batch(
-				func() tea.Msg { return insertProject(m.addingModel.toProject()) },
-				func() tea.Msg { return m.onFinish() },
-			)
+			insertProject(m.addingModel.toProject())
+			m.currentState = projectsState
 		}
 
 		switch {
@@ -85,7 +86,7 @@ func (m model) ViewAddingProjectPrompt() tea.View {
 
 func (m addingModel) headerView() string { return "Add new project\n" }
 
-func (m addingModel) footerView() string { return "\n(esc to quit)" }
+func (m addingModel) footerView() string { return "\n(esc to cancel)" }
 
 func (m *addingModel) focusOnProperField() {
 	switch m.cursor {
@@ -105,11 +106,6 @@ func (m *addingModel) focusOnProperField() {
 		m.alias.Focus()
 
 	}
-}
-
-func (m model) onFinish() string {
-	m.currentState = projectsState
-	return ""
 }
 
 func (m addingModel) toProject() project {
