@@ -1,6 +1,9 @@
 package main
 
 import (
+	"errors"
+	"fmt"
+
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -35,8 +38,7 @@ func (m model) UpdateProject(msg tea.Msg) (model, tea.Cmd) {
 			m.addingModel.cursor++
 
 		case "enter":
-			insertProject(m.addingModel.toProject())
-			m.currentState = projectsState
+			m.submit()
 			return m, loadProjects()
 		}
 
@@ -109,18 +111,31 @@ func (m *addingModel) focusOnProperField() {
 	}
 }
 
-func (m addingModel) toProject() project {
+func (m addingModel) toProject() (project, error) {
+	if m.projectName.Value() == "" || m.rootPath.Value() == "" || m.keyStorePath.Value() == "" || m.alias.Value() == "" {
+		return project{}, errors.New("invalid inputs")
+	}
 	return project{
 		name:         m.projectName.Value(),
 		rootPath:     m.rootPath.Value(),
 		keyStorePath: m.keyStorePath.Value(),
 		alias:        m.alias.View(),
-	}
+	}, nil
 }
 
 func loadProjects() tea.Cmd {
 	return func() tea.Msg {
 		projects, _ := getAllEntries()
 		return projects
+	}
+}
+
+func (m model) submit() {
+	pro, err := m.addingModel.toProject()
+	if err != nil {
+		fmt.Print(err.Error())
+	} else {
+		insertProject(pro)
+		m.currentState = projectsState
 	}
 }
