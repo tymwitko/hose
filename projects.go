@@ -50,6 +50,12 @@ func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd) {
 				m.passwordModel.storePassword.SetVirtualCursor(false)
 				fmt.Print("Git check successful!")
 			}
+
+		case "delete":
+			pro := m.projectModel.projects[m.projectModel.cursor]
+			deleteProject(pro.name)
+			remove(m.projectModel.projects, pro)
+			m.ViewProjects()
 		}
 	}
 	return m, nil
@@ -87,4 +93,13 @@ func (p project) Build(storePass string, keyPass string) tea.Cmd {
 		}
 		return "Build finished successfully!"
 	}
+}
+
+func remove[T comparable](l []T, item T) []T {
+	for i, other := range l {
+		if other == item {
+			return append(l[:i], l[i+1:]...)
+		}
+	}
+	return l
 }

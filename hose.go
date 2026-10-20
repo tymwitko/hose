@@ -37,7 +37,7 @@ type model struct {
 func initialModel() model {
 	projects, _ := getAllEntries()
 	return model{
-		addingState,
+		projectsState,
 		projectModel{
 			projects: projects,
 		},

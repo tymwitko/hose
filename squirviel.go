@@ -65,3 +65,10 @@ func insertProject(p project) sql.Result {
 	}
 	return res
 }
+
+func deleteProject(name string) {
+	_, err := db.Exec("DELETE FROM projects WHERE name = :name", sql.Named("name", name))
+	if err != nil {
+		fmt.Print("error while deleting %w", err)
+	}
+}
