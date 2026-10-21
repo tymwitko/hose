@@ -37,7 +37,7 @@ func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd) {
 				m.projectModel.cursor++
 			}
 
-		case "enter", "space":
+		case "enter":
 			pro := m.projectModel.projects[m.projectModel.cursor]
 			s := pro.CheckGitCleanness()
 			m.currentState = passwordsState
@@ -73,7 +73,7 @@ func (m model) ViewProjects() tea.View {
 		}
 		fmt.Fprintf(&s, "%s %s\n", cursor, p)
 	}
-	s.WriteString("\nPress q to quit.\n")
+	s.WriteString("\nPress q to quit, enter to build project, del to delete current entry.\n")
 	return tea.NewView(s.String())
 }
 
