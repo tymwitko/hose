@@ -40,10 +40,10 @@ func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd) {
 		case "enter":
 			pro := m.projectModel.projects[m.projectModel.cursor]
 			s := pro.CheckGitCleanness()
-			m.currentState = passwordsState
 			if s != "" {
 				fmt.Printf("error %s", s)
 			} else {
+				m.currentState = passwordsState
 				m.passwordModel.project = pro
 				m.passwordModel.storePassword.Focus()
 				m.passwordModel.keyPassword.SetVirtualCursor(false)
