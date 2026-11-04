@@ -24,6 +24,7 @@ const (
 	passwordsState
 	buildingState
 	addingState
+	resultState
 )
 
 type model struct {
@@ -32,7 +33,10 @@ type model struct {
 	passwordModel passwordModel
 	buildingModel buildingModel
 	addingModel   addingModel
+	resultModel   resultModel
 }
+
+type buildFinishedMsg struct{}
 
 func initialModel() model {
 	projects, _ := getAllEntries()
@@ -52,6 +56,7 @@ func initialModel() model {
 			keyStorePath: textinput.New(),
 			alias:        textinput.New(),
 		},
+		resultModel{},
 	}
 }
 
@@ -61,6 +66,12 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	switch msg.(type) {
+	case buildFinishedMsg:
+		m.currentState = resultState
+		return m, cmd
+	}
+
 	switch m.currentState {
 	case projectsState:
 		m, cmd = m.UpdateProjects(msg)
@@ -73,6 +84,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	case addingState:
 		m, cmd = m.UpdateProject(msg)
+		return m, cmd
+	case resultState:
+		m, cmd = m.UpdateResult(msg)
 		return m, cmd
 	}
 	return m, nil
@@ -88,6 +102,8 @@ func (m model) View() tea.View {
 		return m.ViewBuilding()
 	case addingState:
 		return m.ViewAddingProjectPrompt()
+	case resultState:
+		return m.ViewResult()
 	}
 	return tea.NewView("Error")
 }
