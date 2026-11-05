@@ -87,11 +87,11 @@ func (p project) CheckGitCleanness() string {
 
 func (p project) Build(storePass string, keyPass string) tea.Cmd {
 	return func() tea.Msg {
-		res, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && ./gradlew clean assembleRelease -Pandroid.injected.signing.store.file=%s -Pandroid.injected.signing.store.password=%s -Pandroid.injected.signing.key.alias=%s -Pandroid.injected.signing.key.password=%s", p.rootPath, p.keyStorePath, storePass, p.alias, keyPass)).Output()
-		if err != nil {
-			return fmt.Sprintf("Build failed with message %s %s, passwords were %s, %s", res, err, storePass, keyPass)
+		_, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && ./gradlew clean assembleRelease -Pandroid.injected.signing.store.file=%s -Pandroid.injected.signing.store.password=%s -Pandroid.injected.signing.key.alias=%s -Pandroid.injected.signing.key.password=%s", p.rootPath, p.keyStorePath, storePass, p.alias, keyPass)).Output()
+		if err == nil {
+			return buildFinishedMsg{"Build succcessful!"}
 		}
-		return "Build finished successfully!"
+		return buildFinishedMsg{fmt.Sprintf("Build failed! Error is %s", err)}
 	}
 }
 
