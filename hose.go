@@ -36,7 +36,9 @@ type model struct {
 	resultModel   resultModel
 }
 
-type buildFinishedMsg struct{}
+type buildFinishedMsg struct {
+	title string
+}
 
 func initialModel() model {
 	projects, _ := getAllEntries()
@@ -66,9 +68,10 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	switch msg.(type) {
+	switch msg := msg.(type) {
 	case buildFinishedMsg:
 		m.currentState = resultState
+		m.resultModel.title = msg.title
 		return m, cmd
 	}
 
