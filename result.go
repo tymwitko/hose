@@ -11,18 +11,17 @@ type resultModel struct {
 }
 
 func (m model) UpdateResult(msg tea.Msg) (model, tea.Cmd) {
-	var cmd tea.Cmd
+	// var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		default:
-			return m, nil
+			return m, tea.Quit
 		}
 	default:
-		m.buildingModel.spinner, cmd = m.buildingModel.spinner.Update(msg)
-		return m, cmd
+		return m, tea.Quit
 	}
 }
 
