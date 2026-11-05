@@ -34,3 +34,6 @@ go.work.sum
 # DB
 *.db
 *.db-*
+
+# debug
+__*
