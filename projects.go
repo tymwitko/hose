@@ -51,6 +51,9 @@ func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd) {
 				fmt.Print("Git check successful!")
 			}
 
+		case "n":
+			m.currentState = addingState
+
 		case "delete":
 			pro := m.projectModel.projects[m.projectModel.cursor]
 			deleteProject(m.db, pro.name)
@@ -73,7 +76,7 @@ func (m model) ViewProjects() tea.View {
 		}
 		fmt.Fprintf(&s, "%s %s (%s)\n", cursor, p.name, p.rootPath)
 	}
-	s.WriteString("\nPress q to quit, enter to build project, del to delete current entry.\n")
+	s.WriteString("\nPress q to quit, enter to build project, n to add new project, del to delete current entry.\n")
 	return tea.NewView(s.String())
 }
 
