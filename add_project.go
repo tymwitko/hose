@@ -7,6 +7,7 @@ import (
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	sqlite "gosqlite.org"
 )
 
 type addingModel struct {
@@ -39,7 +40,7 @@ func (m model) UpdateProject(msg tea.Msg) (model, tea.Cmd) {
 
 		case "enter":
 			m.submit()
-			return m, loadProjects()
+			return m, loadProjects(m.db)
 		}
 
 		switch {
@@ -123,9 +124,9 @@ func (m addingModel) toProject() (project, error) {
 	}, nil
 }
 
-func loadProjects() tea.Cmd {
+func loadProjects(db *sqlite.DB) tea.Cmd {
 	return func() tea.Msg {
-		projects, _ := getAllEntries()
+		projects, _ := getAllEntries(db)
 		return projects
 	}
 }
@@ -135,7 +136,7 @@ func (m model) submit() {
 	if err != nil {
 		fmt.Print(err.Error())
 	} else {
-		insertProject(pro)
+		insertProject(m.db, pro)
 		m.currentState = projectsState
 	}
 }

@@ -53,7 +53,7 @@ func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd) {
 
 		case "delete":
 			pro := m.projectModel.projects[m.projectModel.cursor]
-			deleteProject(pro.name)
+			deleteProject(m.db, pro.name)
 			remove(m.projectModel.projects, pro)
 			m.ViewProjects()
 		}

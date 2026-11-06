@@ -6,11 +6,14 @@ import (
 
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
+	sqlite "gosqlite.org"
 )
 
 func main() {
+	db := setupDb()
 
-	p := tea.NewProgram(initialModel())
+	defer db.Close()
+	p := tea.NewProgram(initialModel(db))
 	if _, err := p.Run(); err != nil {
 		fmt.Print("Oopsie")
 		os.Exit(1)
@@ -28,6 +31,7 @@ const (
 )
 
 type model struct {
+	db            *sqlite.DB
 	currentState  state
 	projectModel  projectModel
 	passwordModel passwordModel
@@ -40,9 +44,10 @@ type buildFinishedMsg struct {
 	title string
 }
 
-func initialModel() model {
-	projects, _ := getAllEntries()
+func initialModel(db *sqlite.DB) model {
+	projects, _ := getAllEntries(db)
 	return model{
+		db,
 		projectsState,
 		projectModel{
 			projects: projects,

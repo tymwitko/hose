@@ -7,8 +7,6 @@ import (
 	sqlite "gosqlite.org"
 )
 
-var db = setupDb()
-
 func setupDb() *sqlite.DB {
 	db, err := sqlite.Open(sqlite.Config{
 		Path:         "hose_paths.db",
@@ -34,7 +32,7 @@ func setupDb() *sqlite.DB {
 	return db
 }
 
-func getAllEntries() ([]project, error) {
+func getAllEntries(db *sqlite.DB) ([]project, error) {
 	rows, err := db.Query(`SELECT * FROM projects`)
 	if err != nil {
 		return nil, fmt.Errorf("query projects: %w", err)
@@ -56,7 +54,7 @@ func getAllEntries() ([]project, error) {
 	return projects, nil
 }
 
-func insertProject(p project) sql.Result {
+func insertProject(db *sqlite.DB, p project) sql.Result {
 	query := "INSERT INTO projects(name, rootPath, keyStorePath, alias) VALUES(?, ?, ?, ?)"
 	res, err := db.Exec(query, p.name, p.rootPath, p.keyStorePath, p.alias)
 	if err != nil {
@@ -66,7 +64,7 @@ func insertProject(p project) sql.Result {
 	return res
 }
 
-func deleteProject(name string) {
+func deleteProject(db *sqlite.DB, name string) {
 	_, err := db.Exec("DELETE FROM projects WHERE name = :name", sql.Named("name", name))
 	if err != nil {
 		fmt.Print("error while deleting %w", err)
