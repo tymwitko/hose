@@ -11,7 +11,6 @@ type resultModel struct {
 }
 
 func (m model) UpdateResult(msg tea.Msg) (model, tea.Cmd) {
-	// var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {

@@ -71,7 +71,7 @@ func (m model) ViewProjects() tea.View {
 		if m.projectModel.cursor == i {
 			cursor = ">"
 		}
-		fmt.Fprintf(&s, "%s %s\n", cursor, p)
+		fmt.Fprintf(&s, "%s %s (%s)\n", cursor, p.name, p.rootPath)
 	}
 	s.WriteString("\nPress q to quit, enter to build project, del to delete current entry.\n")
 	return tea.NewView(s.String())
