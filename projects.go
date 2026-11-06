@@ -90,7 +90,16 @@ func (p project) CheckGitCleanness() string {
 
 func (p project) Build(storePass string, keyPass string) tea.Cmd {
 	return func() tea.Msg {
-		_, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && ./gradlew clean assembleRelease -Pandroid.injected.signing.store.file=%s -Pandroid.injected.signing.store.password=%s -Pandroid.injected.signing.key.alias=%s -Pandroid.injected.signing.key.password=%s", p.rootPath, p.keyStorePath, storePass, p.alias, keyPass)).Output()
+		cmd := exec.Command(
+			"./gradlew", "clean", "assembleRelease",
+			"-Pandroid.injected.signing.store.file="+p.keyStorePath,
+			"-Pandroid.injected.signing.store.password="+storePass,
+			"-Pandroid.injected.signing.key.alias="+p.alias,
+			"-Pandroid.injected.signing.key.password="+keyPass,
+		)
+		cmd.Dir = p.rootPath
+		_, err := cmd.Output()
+		//_, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && ./gradlew clean assembleRelease -Pandroid.injected.signing.store.file=%s -Pandroid.injected.signing.store.password=%s -Pandroid.injected.signing.key.alias=%s -Pandroid.injected.signing.key.password=%s", p.rootPath, p.keyStorePath, storePass, p.alias, keyPass)).Output()
 		if err == nil {
 			return buildFinishedMsg{"Build succcessful!"}
 		}
