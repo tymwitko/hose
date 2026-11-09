@@ -41,7 +41,8 @@ type model struct {
 }
 
 type buildFinishedMsg struct {
-	title string
+	title  string
+	isSucc bool
 }
 
 func initialModel(db *sqlite.DB) model {
@@ -77,6 +78,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case buildFinishedMsg:
 		m.currentState = resultState
 		m.resultModel.title = msg.title
+		if m.resultModel.isSucc {
+			openFolder(m.passwordModel.project.rootPath + "/app/build/outputs/apk/release")
+		}
 		return m, cmd
 	}
 

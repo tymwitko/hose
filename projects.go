@@ -99,11 +99,10 @@ func (p project) Build(storePass string, keyPass string) tea.Cmd {
 		)
 		cmd.Dir = p.rootPath
 		_, err := cmd.Output()
-		//_, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("cd %s && ./gradlew clean assembleRelease -Pandroid.injected.signing.store.file=%s -Pandroid.injected.signing.store.password=%s -Pandroid.injected.signing.key.alias=%s -Pandroid.injected.signing.key.password=%s", p.rootPath, p.keyStorePath, storePass, p.alias, keyPass)).Output()
 		if err == nil {
-			return buildFinishedMsg{"Build succcessful!"}
+			return buildFinishedMsg{"Build succcessful!", true}
 		}
-		return buildFinishedMsg{fmt.Sprintf("Build failed! Error is %s", err)}
+		return buildFinishedMsg{fmt.Sprintf("Build failed! Error is %s", err), false}
 	}
 }
 

@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os/exec"
+	"runtime"
 
 	tea "charm.land/bubbletea/v2"
 )
 
 type resultModel struct {
-	title string
+	title  string
+	isSucc bool
 }
 
 func (m model) UpdateResult(msg tea.Msg) (model, tea.Cmd) {
@@ -27,4 +30,19 @@ func (m model) UpdateResult(msg tea.Msg) (model, tea.Cmd) {
 func (m model) ViewResult() tea.View {
 	str := fmt.Sprintf("\n\n\n   %s\n\n\n", m.resultModel.title)
 	return tea.NewView(str)
+}
+
+func openFolder(path string) error {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "linux":
+		cmd = exec.Command("xdg-open", path)
+	case "windows":
+		cmd = exec.Command("explorer", path)
+	case "darwin":
+		cmd = exec.Command("open", path)
+	default: // bsd
+		cmd = exec.Command("xdg-open", path)
+	}
+	return cmd.Start()
 }
