@@ -6,6 +6,7 @@ import (
 	"os/exec"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 type projectModel struct {
@@ -69,15 +70,16 @@ func (m model) ViewProjects() tea.View {
 	var s bytes.Buffer
 	s.WriteString("Select project to build\n\n")
 
+	var projectsView []string
 	for i, p := range m.projectModel.projects {
 		cursor := " "
 		if m.projectModel.cursor == i {
 			cursor = ">"
 		}
-		fmt.Fprintf(&s, "%s %s (%s)\n", cursor, p.name, p.rootPath)
-	}
-	s.WriteString("\nPress q to quit, enter to build project, n to add new project, del to delete current entry.\n")
-	return tea.NewView(s.String())
+		projectsView[i] = fmt.Sprintf("%s %s (%s)", cursor, p.name, p.rootPath)
+	} // todo: add projectsView to the lipgloss build
+	view := lipgloss.JoinVertical(lipgloss.Left, "Select project to build", "Press q to quit, enter to build project, n to add new project, del to delete current entry.")
+	return tea.NewView(view)
 }
 
 func (p project) CheckGitCleanness() string {
