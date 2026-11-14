@@ -70,7 +70,7 @@ func (m model) ViewProjects() tea.View {
 	var s bytes.Buffer
 	s.WriteString("Select project to build\n\n")
 
-	var projectsView []string
+	projectsView := make([]string, len(m.projectModel.projects))
 	for i, p := range m.projectModel.projects {
 		cursor := " "
 		if m.projectModel.cursor == i {
@@ -78,7 +78,12 @@ func (m model) ViewProjects() tea.View {
 		}
 		projectsView[i] = fmt.Sprintf("%s %s (%s)", cursor, p.name, p.rootPath)
 	} // todo: add projectsView to the lipgloss build
-	view := lipgloss.JoinVertical(lipgloss.Left, "Select project to build", "Press q to quit, enter to build project, n to add new project, del to delete current entry.")
+	view := lipgloss.JoinVertical(
+		lipgloss.Left,
+		"Select project to build",
+		lipgloss.JoinVertical(lipgloss.Left, projectsView...),
+		"Press q to quit, enter to build project, n to add new project, del to delete current entry.",
+	)
 	return tea.NewView(view)
 }
 
