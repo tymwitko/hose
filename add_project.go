@@ -80,17 +80,41 @@ func (m model) ViewAddingProjectPrompt() tea.View {
 		c.Y += lipgloss.Height(m.addingModel.headerView()) + 12
 	}
 
-	str := lipgloss.JoinVertical(lipgloss.Top, m.addingModel.headerView(), "\nName:\n", m.addingModel.projectName.View(), "\nProject root path:\n", m.addingModel.rootPath.View(), "\nKeystore file path:\n", m.addingModel.keyStorePath.View(), "\nKey alias:\n", m.addingModel.alias.View(), m.addingModel.footerView())
+	str := lipgloss.JoinVertical(
+		lipgloss.Top,
+		m.addingModel.headerView(),
+		"",
+		"Name:",
+		m.addingModel.projectName.View(),
+		"",
+		"Project root path:",
+		m.addingModel.rootPath.View(),
+		"",
+		"Keystore file path:",
+		m.addingModel.keyStorePath.View(),
+		"",
+		"Key alias:",
+		m.addingModel.alias.View(),
+		"",
+		m.addingModel.footerView(),
+	)
 
-	v := tea.NewView(str)
+	content := lipgloss.Place(
+		m.width,
+		m.height,
+		lipgloss.Top,
+		lipgloss.Top,
+		str,
+	)
+	v := tea.NewView(content)
 	v.Cursor = c
 	return v
 
 }
 
-func (m addingModel) headerView() string { return "Add new project\n" }
+func (m addingModel) headerView() string { return "Add new project" }
 
-func (m addingModel) footerView() string { return "\n(esc to cancel)" }
+func (m addingModel) footerView() string { return "(esc to cancel)" }
 
 func (m *addingModel) focusOnProperField() {
 	switch m.cursor {

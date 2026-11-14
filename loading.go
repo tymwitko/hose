@@ -36,6 +36,21 @@ func (m model) UpdateBuilding(msg tea.Msg) (model, tea.Cmd) {
 }
 
 func (m model) ViewBuilding() tea.View {
-	str := fmt.Sprintf("\n\n\n   %s Building…\n\n\n", m.buildingModel.spinner.View())
-	return tea.NewView(str)
+
+	projectsView := make([]string, len(m.projectModel.projects))
+	for i, p := range m.projectModel.projects {
+		cursor := " "
+		if m.projectModel.cursor == i {
+			cursor = ">"
+		}
+		projectsView[i] = fmt.Sprintf("%s %s (%s)", cursor, p.name, p.rootPath)
+	}
+	view := lipgloss.Place(
+		m.width,
+		m.height,
+		lipgloss.Center,
+		lipgloss.Center,
+		fmt.Sprintf("%s Building…", m.buildingModel.spinner.View()),
+	)
+	return tea.NewView(view)
 }
