@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 type resultModel struct {
@@ -28,8 +29,11 @@ func (m model) UpdateResult(msg tea.Msg) (model, tea.Cmd) {
 }
 
 func (m model) ViewResult() tea.View {
-	str := fmt.Sprintf("\n\n\n   %s\n\n\n", m.resultModel.title)
-	return tea.NewView(str)
+	view := lipgloss.JoinVertical(
+		lipgloss.Center,
+		fmt.Sprintf("%s", m.resultModel.title),
+	)
+	return tea.NewView(view)
 }
 
 func openFolder(path string) error {
