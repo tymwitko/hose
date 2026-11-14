@@ -33,6 +33,8 @@ const (
 type model struct {
 	db            *sqlite.DB
 	currentState  state
+	width         int
+	height        int
 	projectModel  projectModel
 	passwordModel passwordModel
 	buildingModel buildingModel
@@ -50,6 +52,8 @@ func initialModel(db *sqlite.DB) model {
 	return model{
 		db,
 		projectsState,
+		60,
+		getViewPortHeight(len(projects)),
 		projectModel{
 			projects: projects,
 		},
@@ -118,4 +122,10 @@ func (m model) View() tea.View {
 		return m.ViewResult()
 	}
 	return tea.NewView("Error")
+}
+
+func getViewPortHeight(projectsLen int) int {
+	projectsHeight := projectsLen + 4
+	addHeight := 16
+	return max(projectsHeight, addHeight)
 }

@@ -45,7 +45,10 @@ func (m model) ViewBuilding() tea.View {
 		}
 		projectsView[i] = fmt.Sprintf("%s %s (%s)", cursor, p.name, p.rootPath)
 	}
-	view := lipgloss.JoinVertical(
+	view := lipgloss.Place(
+		m.width,
+		m.height,
+		lipgloss.Center,
 		lipgloss.Center,
 		fmt.Sprintf("%s Building…", m.buildingModel.spinner.View()),
 	)

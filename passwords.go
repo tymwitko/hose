@@ -76,7 +76,14 @@ func (m model) ViewPasswordPrompts() tea.View {
 
 	str := lipgloss.JoinVertical(lipgloss.Top, m.passwordModel.headerView(), maskPassword(m.passwordModel.storePassword), "\nEnter your key password\n", maskPassword(m.passwordModel.keyPassword), m.passwordModel.footerView())
 
-	v := tea.NewView(str)
+	content := lipgloss.Place(
+		m.width,
+		m.height,
+		lipgloss.Top,
+		lipgloss.Top,
+		str,
+	)
+	v := tea.NewView(content)
 	v.Cursor = c
 	return v
 

@@ -74,11 +74,20 @@ func (m model) ViewProjects() tea.View {
 		}
 		projectsView[i] = fmt.Sprintf("%s %s (%s)", cursor, p.name, p.rootPath)
 	}
-	view := lipgloss.JoinVertical(
+	content := lipgloss.JoinVertical(
 		lipgloss.Left,
 		"Select project to build",
+		"",
 		lipgloss.JoinVertical(lipgloss.Left, projectsView...),
+		"",
 		"Press q to quit, enter to build project, n to add new project, del to delete current entry.",
+	)
+	view := lipgloss.Place(
+		m.width,
+		m.height,
+		lipgloss.Center,
+		lipgloss.Top,
+		content,
 	)
 	return tea.NewView(view)
 }

@@ -29,11 +29,18 @@ func (m model) UpdateResult(msg tea.Msg) (model, tea.Cmd) {
 }
 
 func (m model) ViewResult() tea.View {
-	view := lipgloss.JoinVertical(
+	str := lipgloss.JoinVertical(
 		lipgloss.Center,
 		fmt.Sprintf("%s", m.resultModel.title),
 	)
-	return tea.NewView(view)
+	content := lipgloss.Place(
+		m.width,
+		m.height,
+		lipgloss.Top,
+		lipgloss.Center,
+		str,
+	)
+	return tea.NewView(content)
 }
 
 func openFolder(path string) error {
