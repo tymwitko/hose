@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os/exec"
 
@@ -67,9 +66,6 @@ func (m model) UpdateProjects(msg tea.Msg) (model, tea.Cmd) {
 
 func (m model) ViewProjects() tea.View {
 
-	var s bytes.Buffer
-	s.WriteString("Select project to build\n\n")
-
 	projectsView := make([]string, len(m.projectModel.projects))
 	for i, p := range m.projectModel.projects {
 		cursor := " "
@@ -77,7 +73,7 @@ func (m model) ViewProjects() tea.View {
 			cursor = ">"
 		}
 		projectsView[i] = fmt.Sprintf("%s %s (%s)", cursor, p.name, p.rootPath)
-	} // todo: add projectsView to the lipgloss build
+	}
 	view := lipgloss.JoinVertical(
 		lipgloss.Left,
 		"Select project to build",
